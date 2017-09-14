@@ -1,7 +1,7 @@
 function simple
 clc
 clear
-%close all
+close all
 format short
 
 mesh = load('../mesh/voronoi.mat');

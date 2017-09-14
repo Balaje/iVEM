@@ -1,7 +1,7 @@
 function squares
 clear
 clc
-%close all
+close all
 format short
 
 mesh1 = load('../mesh/squares/squares_linear10.mat');
