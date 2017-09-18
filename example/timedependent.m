@@ -6,7 +6,7 @@ close all
 
 syms x y
 
-mesh = load('../mesh/non-convex.mat');
+mesh = load('mesh/non-convex.mat');
 %%% Discretizing time
 t0 = 0;
 tf = 1;

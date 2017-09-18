@@ -2,15 +2,15 @@ function squares
 clear
 clc
 close all
-format short
+format short12
 
-mesh1 = load('../mesh/squares/squares_linear10.mat');
-mesh2 = load('../mesh/squares/squares_linear15.mat');
-mesh3 = load('../mesh/squares/squares_linear20.mat');
-mesh4 = load('../mesh/squares/squares_linear25.mat');
-mesh5 = load('../mesh/squares/squares_linear30.mat');
-mesh6 = load('../mesh/squares/squares_linear35.mat');
-mesh7 = load('../mesh/squares/squares_linear40.mat');
+mesh1 = load('mesh/squares/squares_linear10.mat');
+mesh2 = load('mesh/squares/squares_linear15.mat');
+mesh3 = load('mesh/squares/squares_linear20.mat');
+mesh4 = load('mesh/squares/squares_linear25.mat');
+mesh5 = load('mesh/squares/squares_linear30.mat');
+mesh6 = load('mesh/squares/squares_linear35.mat');
+mesh7 = load('mesh/squares/squares_linear40.mat');
 
 
 mesh = {mesh1, mesh2, mesh3, mesh4, mesh5, mesh6, mesh7};
