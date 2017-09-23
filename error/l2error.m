@@ -71,6 +71,6 @@ for q=1:3
     yhat = (vert(2)-centroid(2))*qx(q) + (next(2)-centroid(2))*qy(q) + vert(2);
     
     l2 = l2 + qw(q)*2*area*(erroru(xhat,yhat))^2;
-    h1 = h1 + qw(q)*2*area*(erroru(xhat,yhat)^2 + errorux^2 + erroruy^2);
+    h1 = h1 + qw(q)*2*area*(errorux^2 + erroruy^2);
 end
 end

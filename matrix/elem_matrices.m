@@ -1,7 +1,16 @@
 function [Ke,Fe,Me,G,D,B,H] = elem_matrices(mesh,id,poly_deg,f)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   Function that returns the Stiffness matrix
-%
+%   Function that returns the Elemental Data:
+%       Input :
+%               mesh, element_id, poly_degree_used,
+%               Right hand side function : f (Provide arbitrary argument if
+%               not used.
+%       Output :
+%               Ke : Elemental Stiffness Matrix
+%               Fe : Elemental Load Vector
+%               Me : Elemental Mass Matrix
+%               Matrices G,D,B,H - In the same order
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if(poly_deg==1)
     elem = mesh.elements{id};
@@ -36,11 +45,11 @@ if(poly_deg==1)
     for j=2:3
         for k=2:3
             for v = 1:nsides
-               vert = verts(v,:);
-               next = verts(modwrap(v-1, nsides), :);
-               
-               H(j,k) = H(j,k) + integrate_linear({centroid,vert,next},...
-                   linear_polynomials{j},linear_polynomials{k},diameter);
+                vert = verts(v,:);
+                next = verts(modwrap(v-1, nsides), :);
+                
+                H(j,k) = H(j,k) + integrate2dtri({centroid,vert,next},...
+                    linear_polynomials{j},linear_polynomials{k},diameter,1);
             end
         end
     end
@@ -59,17 +68,204 @@ if(poly_deg==1)
     Me = C'*(H\C) + area*(eye(nsides)-ritz_projector)'*(eye(nsides)-ritz_projector);
 end
 
+%%%% BEGIN Constructing matrices for k = 2
+if(poly_deg == 2)
+    elem = mesh.elements{id};
+    eldofs = length(elem);
+    verts = mesh.vertices(elem(1:(eldofs-1)/2),:); % Vertices
+    nsides = length(verts);
+    v = mesh.vertices(mesh.elements{id}(1:end-1),:); % Vertices + Midpoints
+    
+    npolys = 6;
+    quad_polynomials = {[0,0],[1,0],[0,1],[2,0],[1,1],[0,2]};
+    [area, centroid, diameter] = geo(mesh,id);
+    modwrap = @(x,a) mod(x-1,a) + 1;
+    %%%% Find out D matrix
+    D = zeros(eldofs,npolys);
+    for i=1:eldofs-1
+        vert = v(i,:);
+        for alpha = 1:npolys
+            poly_degree = quad_polynomials{alpha};
+            D(i,alpha) = ((vert(1)-centroid(1))/diameter)^poly_degree(1)*...
+                ((vert(2)-centroid(2))/diameter)^poly_degree(2);
+        end
+    end
+    % Last DOF
+    for alpha = 1:npolys
+        for k = 1:length(verts)
+            vert = verts(k,:);
+            next = verts(modwrap(k-1, nsides), :);
+            D(eldofs,alpha) = D(eldofs,alpha) + ...
+                (1/area)*integrate2dtri({centroid, vert, next},...
+                [0,0], quad_polynomials{alpha}, diameter, 6);
+        end
+    end
+    
+    %%%% Find out B matrix
+    B = zeros(npolys, eldofs);
+    for i=1:eldofs-1
+        if(i <= nsides)
+            vert = verts(i,:);
+            next = verts(modwrap(i-1, nsides), :);
+            prev = verts(modwrap(i+1, nsides), :);
+        elseif(i > nsides)
+            vert = verts(i-nsides,:);
+            next = verts(modwrap(i-nsides-1, nsides), :);
+            prev = verts(modwrap(i-nsides+1, nsides), :);
+        end
+        normal1 = -[vert(2) - next(2), next(1) - vert(1)];
+        normal2 = -[prev(2) - vert(2), vert(1) - prev(1)];
+        normal1 = normal1/norm(normal1);
+        normal2 = normal2/norm(normal2);
+        dmdn1 = {@(x,y) 0;
+            @(x,y) normal1(1)*1/diameter;
+            @(x,y) normal1(2)*1/diameter;
+            @(x,y) normal1(1)*2*(x-centroid(1))/diameter^2;
+            @(x,y) 1/diameter^2*(normal1(1)*(y-centroid(2))...
+            + normal1(2)*(x-centroid(1)));
+            @(x,y) normal1(2)*2*(y-centroid(2))/diameter^2};
+        dmdn2 = {@(x,y) 0;
+            @(x,y) normal2(1)*1/diameter;
+            @(x,y) normal2(2)*1/diameter;
+            @(x,y) normal2(1)*2*(x-centroid(1))/diameter^2;
+            @(x,y) 1/diameter^2*(normal2(1)*(y-centroid(2))...
+            + normal2(2)*(x-centroid(1)));
+            @(x,y) normal2(2)*2*(y-centroid(2))/diameter^2};
+        
+        for alpha = 1:npolys
+            if(i <= nsides)
+                B(alpha,i) = integrate1dline(vert, next, dmdn1{alpha}, 1) + ...
+                    integrate1dline(prev, vert, dmdn2{alpha}, 3);
+            elseif(i > nsides && i <= 2*nsides)
+                B(alpha,i) = integrate1dline(vert, next, dmdn1{alpha}, 2);
+            end
+        end
+    end
+    lapm = [0;0;0;2/diameter^2;0;2/diameter^2];
+    B(:,eldofs) = -area*lapm;
+    B(1,eldofs) = 1;
+    
+    G = B*D;
+    projector = G\B;
+    stabilising_term = (eye(eldofs) - D * projector)' * (eye(eldofs) - D * projector);
+    Gt = G;
+    Gt(1, :) = 0;
+    Ke = projector'*Gt*projector + stabilising_term;
+    Fe = zeros(size(Ke,1),1);
+    for i=1:nsides
+        vert = v(i,:);
+        next = v(modwrap(i-1, nsides), :);
+        Fe = Fe + loadvec(projector, centroid, vert, next, diameter, f);
+    end
+    
+    %%%%% Temporary variables - not assigned yet
+    Me = Ke;
+    H = G;
 end
 
-function V = integrate_linear(C,alpha,beta,diameter)
-P1 = C{1};
-P2 = C{2};
-P3 = C{3};
-centroid = P1;
-tricentroid = 1/3*(P1+P2+P3);
+end
+
+function V = integrate2dtri(C,alpha,beta,diameter,qrule)
+if(qrule==1)
+    P1 = C{1};
+    P2 = C{2};
+    P3 = C{3};
+    centroid = P1;
+    tricentroid = 1/3*(P1+P2+P3);
+    A = [1, P1; 1, P2; 1, P3];
+    area = 0.5*abs(det(A));
+    ma = @(x,y)((x-centroid(1))/diameter)^(alpha(1))*((y-centroid(2))/diameter)^(alpha(2));
+    mb = @(x,y)((x-centroid(1))/diameter)^(beta(1))*((y-centroid(2))/diameter)^(beta(2));
+    V = area*ma(tricentroid(1),tricentroid(2))*mb(tricentroid(1),tricentroid(2));
+elseif(qrule==6)
+    P1 = C{1};
+    P2 = C{2};
+    P3 = C{3};
+    centroid = P1;    
+    area = 0.5*abs(det([1, P1; 1, P2; 1, P3]));
+    
+    ma = @(x,y)((x-centroid(1))/diameter)^(alpha(1))*((y-centroid(2))/diameter)^(alpha(2));
+    mb = @(x,y)((x-centroid(1))/diameter)^(beta(1))*((y-centroid(2))/diameter)^(beta(2));
+    
+    qw = [0.1116907948390, 0.1116907948390, 0.1116907948390, 0.0549758718276, ...
+        0.0549758718276, 0.0549758718276];
+    qx = [0.108103018168, 0.445948490915, 0.445948490915, 0.816847572980,...
+        0.091576213509, 0.091576213509];
+    qy = [0.445948490915, 0.445948490915, 0.108103018168, 0.091576213509,...
+        0.091576213509, 0.816847572980,];
+    
+    V = 0;
+    for q = 1:qrule
+        xhat = (P2(1)-P1(1))*qx(q) + (P3(1)-P1(1))*qy(q) + P1(1);
+        yhat = (P2(2)-P1(2))*qx(q) + (P3(2)-P1(2))*qy(q) + P1(2);
+        
+        V = V + qw(q)*2*area*ma(xhat,yhat)*mb(xhat,yhat);
+    end
+end
+end
+
+function V = integrate1dline(p1, p2, func, basis)
+Q = [0.6521451548625461,-0.3399810435848563;
+     0.6521451548625461, 0.3399810435848563;
+     0.3478548451374538,-0.8611363115940526;
+     0.3478548451374538, 0.8611363115940526];
+qx = Q(:,2);
+qw = Q(:,1);
+qG = length(qx);
+x1 = p1(1); x2 = p2(1);
+y1 = p1(2); y2 = p2(2);
+dx = norm(p2-p1);
+
+if(x2 - x1 ~= 0)
+    V = 0;
+    for q=1:qG
+        xhat = (x2-x1)/2*qx(q) + (x2+x1)/2;
+        yhat = (xhat-x1)/(x2-x1)*(y2-y1) + y1;
+        phi = [-0.5*qx(q) + 0.5*qx(q)^2; 1-qx(q)^2; 0.5*qx(q) + 0.5*qx(q)^2];
+        V = V + 0.5*dx*qw(q)*func(xhat,yhat)*phi(basis);
+    end
+else
+    V = 0;
+    for q=1:qG
+        yhat = (y2-y1)/2*qx(q) + (y2+y1)/2;
+        xhat = (yhat-y1)/(y2-y1)*(x2-x1) + x1;
+        phi = [-0.5*qx(q) + 0.5*qx(q)^2; 1-qx(q)^2; 0.5*qx(q) + 0.5*qx(q)^2];
+        V = V + 0.5*dx*qw(q)*func(xhat,yhat)*phi(basis);
+    end
+end
+end
+
+function V = loadvec(projector, centroid, vert, next, diameter, f)
+P1 = centroid;
+P2 = vert;
+P3 = next;
 A = [1, P1; 1, P2; 1, P3];
 area = 0.5*abs(det(A));
-ma = @(x,y)(1/diameter^2)*(x-centroid(1))^(alpha(1))*(y-centroid(2))^(alpha(2));
-mb = @(x,y)(1/diameter^2)*(x-centroid(1))^(beta(1))*(y-centroid(2))^(beta(2));
-V = area*ma(tricentroid(1),tricentroid(2))*mb(tricentroid(1),tricentroid(2));
+
+qw = [0.1116907948390, 0.1116907948390, 0.1116907948390, 0.0549758718276, ...
+    0.0549758718276, 0.0549758718276];
+qx = [0.108103018168, 0.445948490915, 0.445948490915, 0.816847572980,...
+    0.091576213509, 0.091576213509];
+qy = [0.445948490915, 0.445948490915, 0.108103018168, 0.091576213509,...
+    0.091576213509, 0.816847572980,];
+qG = length(qw);
+
+ndofs = size(projector,2);
+V = zeros(ndofs,1);
+
+for i=1:ndofs
+    for q = 1:qG
+        xhat = (P2(1)-P1(1))*qx(q) + (P3(1)-P1(1))*qy(q) + P1(1);
+        yhat = (P2(2)-P1(2))*qx(q) + (P3(2)-P1(2))*qy(q) + P1(2);
+        
+        m = [1;
+            (xhat-centroid(1))/diameter;
+            (yhat-centroid(2))/diameter;
+            ((xhat-centroid(1))/diameter)^2;
+            ((xhat-centroid(1))/diameter)*((yhat-centroid(2))/diameter);
+            ((yhat-centroid(2))/diameter)^2];
+        projector_i = projector'*m;
+        V(i) = V(i) + 2*area*qw(q)*f(xhat,yhat)*projector_i(i,:);
+    end
+end
 end
