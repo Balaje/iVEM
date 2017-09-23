@@ -18,14 +18,22 @@ function [area, centroid, diameter] = geo(varargin)
 %                           help cell
 %                  in the terminal.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 if(nargin==2) %% IF THE USER WANTS DATA FOR THE PARTICULAR ELEMENT.
     mesh = varargin{1};
-    elid = varargin{2};    
+    elid = varargin{2};
     % Collect the required information
-    elem = mesh.elements{elid};
-    verts = mesh.vertices(elem,:);
-    nsides = length(elem);    
+    elem = mesh.elements{elid}; 
+    if(mesh.elements{1}(end) > length(mesh.vertices))
+        k = 2;
+    else
+        k = 1;
+    end
+    if(k==1)
+        verts = mesh.vertices(elem,:);    
+    elseif(k==2)        
+        verts = mesh.vertices(elem(1:(length(elem)-1)/2),:);
+    end
+    nsides = length(verts);    
     % 1. Calculate the area of the element.
     area_comp = verts(:,1).*verts([2:end,1],2)...
         - verts([2:end,1],1).*verts(:,2);
@@ -54,9 +62,18 @@ else %% IF THE USER WANTS DATA FOR ALL THE ELEMENTS
     % Start computing for all elements
     for el = 1:nel
         % Collect the required information
-        elem = mesh.elements{el};
-        verts = mesh.vertices(elem,:);
-        nsides = length(elem);
+        elem = mesh.elements{el};        
+        if(mesh.elements{1}(end) > length(mesh.vertices))
+            k = 2;
+        else
+            k = 1;
+        end
+        if(k==1)
+            verts = mesh.vertices(elem,:);    
+        elseif(k==2)        
+            verts = mesh.vertices(elem(1:(length(elem)-1)/2),:);
+        end
+        nsides = length(verts);
         % 1. Calculate the area of the element.
         area_comp = verts(:,1).*verts([2:end,1],2)...
             - verts([2:end,1],1).*verts(:,2);
