@@ -25,7 +25,7 @@ h1order = zeros(nref-1,1);
 for it = 1:nref
     usol = poisson(mesh{it}, @f, @g_D);
     
-    [l2err(it),h1err(it)] = l2error(mesh{it},@exact,usol);
+    [l2err(it),h1err(it)] = l2error(mesh{it},@exact,usol,1);
     N(it) = size(mesh{it}.elements,1);
     
     figure(1)
@@ -38,8 +38,9 @@ for it = 1:nref
     subplot(1,2,2)
     cla
     plot_solution(mesh{it},zeros(length(usol),1));
-    title('Virtual Element Mesh','FontSize',14);
-    
+    hold on
+    scatter(mesh{it}.vertices(:,1),mesh{it}.vertices(:,2),5,'rs');
+    title('Virtual Element Mesh','FontSize',12);    
     pause(0.01);
     hold off
 end

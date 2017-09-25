@@ -11,21 +11,18 @@ function [Ke,Fe,Me,G,D,B,H] = elem_matrices(mesh,id,poly_deg,f)
 %               Me : Elemental Mass Matrix
 %               Matrices G,D,B,H - In the same order
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%%%% BEGIN Constructing matrices for k = 1
 if(poly_deg==1)
     elem = mesh.elements{id};
     verts = mesh.vertices(elem,:);
     nsides = length(elem);
-    npolys = 3;
-    
+    npolys = 3;    
     [area, centroid, diameter] = geo(mesh,id);
-    modwrap = @(x,a) mod(x-1,a) + 1;
-    
+    modwrap = @(x,a) mod(x-1,a) + 1;    
     D = zeros(nsides, npolys);
     D(:, 1) = 1;
     B = zeros(npolys, nsides);
-    B(1, :) = 1/nsides;
-    
+    B(1, :) = 1/nsides;    
     linear_polynomials = {[0,0], [1,0], [0,1]};
     for v = 1:nsides
         vert = verts(v, :); % This vertex and its neighbours
@@ -46,105 +43,86 @@ if(poly_deg==1)
         for k=2:3
             for v = 1:nsides
                 vert = verts(v,:);
-                next = verts(modwrap(v-1, nsides), :);
-                
+                next = verts(modwrap(v-1, nsides), :);                
                 H(j,k) = H(j,k) + integrate2dtri({centroid,vert,next},...
                     linear_polynomials{j},linear_polynomials{k},diameter,1);
             end
         end
-    end
-    
+    end    
     projector = (B*D)\B;
     stabilising_term = (eye(nsides) - D * projector)' * (eye(nsides) - D * projector);
     G = B*D;
     Gt = G;
     Gt(1, :) = 0;
     Ke = projector'*Gt*projector + stabilising_term;
-    Fe = ones(nsides,1)*f(centroid(1),centroid(2))*area/nsides;
-    
+    Fe = ones(nsides,1)*f(centroid(1),centroid(2))*area/nsides;    
     %%%%%% Mass Matrix
     C = H*(G\B);
     ritz_projector = D*projector;
     Me = C'*(H\C) + area*(eye(nsides)-ritz_projector)'*(eye(nsides)-ritz_projector);
 end
-
+%%%% END  Constructing matrices for k = 1
 %%%% BEGIN Constructing matrices for k = 2
 if(poly_deg == 2)
     elem = mesh.elements{id};
     eldofs = length(elem);
     verts = mesh.vertices(elem(1:(eldofs-1)/2),:); % Vertices
     nsides = length(verts);
-    v = mesh.vertices(mesh.elements{id}(1:end-1),:); % Vertices + Midpoints
-    
-    npolys = 6;
-    quad_polynomials = {[0,0],[1,0],[0,1],[2,0],[1,1],[0,2]};
+    v = mesh.vertices(mesh.elements{id}(1:end-1),:); % Vertices + Midpoints    
+    npolys = 6; % Number of scaled monomials
+    quad_polynomials = {[0,0],[1,0],[0,1],[2,0],[1,1],[0,2]}; % Description
     [area, centroid, diameter] = geo(mesh,id);
     modwrap = @(x,a) mod(x-1,a) + 1;
-    %%%% Find out D matrix
+    %%%% Find out D matrix (DOF Matrix)
+    % 1 - (Last-1) DOFs (Values)
     D = zeros(eldofs,npolys);
     for i=1:eldofs-1
         vert = v(i,:);
         for alpha = 1:npolys
             poly_degree = quad_polynomials{alpha};
-            D(i,alpha) = ((vert(1)-centroid(1))/diameter)^poly_degree(1)*...
-                ((vert(2)-centroid(2))/diameter)^poly_degree(2);
+            D(i,alpha) = ((vert(1)-centroid(1))/diameter)^(poly_degree(1))*...
+                ((vert(2)-centroid(2))/diameter)^(poly_degree(2));
         end
     end
-    % Last DOF
+    % Last DOF (Moments)
     for alpha = 1:npolys
         for k = 1:length(verts)
             vert = verts(k,:);
-            next = verts(modwrap(k-1, nsides), :);
+            next = verts(modwrap(k+1, nsides), :);
             D(eldofs,alpha) = D(eldofs,alpha) + ...
                 (1/area)*integrate2dtri({centroid, vert, next},...
                 [0,0], quad_polynomials{alpha}, diameter, 6);
         end
-    end
-    
+    end    
     %%%% Find out B matrix
     B = zeros(npolys, eldofs);
     for i=1:eldofs-1
-        if(i <= nsides)
+        if(i <= nsides)            
             vert = verts(i,:);
-            next = verts(modwrap(i-1, nsides), :);
-            prev = verts(modwrap(i+1, nsides), :);
-        elseif(i > nsides)
-            vert = verts(i-nsides,:);
-            next = verts(modwrap(i-nsides-1, nsides), :);
-            prev = verts(modwrap(i-nsides+1, nsides), :);
-        end
-        normal1 = -[vert(2) - next(2), next(1) - vert(1)];
-        normal2 = -[prev(2) - vert(2), vert(1) - prev(1)];
-        normal1 = normal1/norm(normal1);
-        normal2 = normal2/norm(normal2);
-        dmdn1 = {@(x,y) 0;
-            @(x,y) normal1(1)*1/diameter;
-            @(x,y) normal1(2)*1/diameter;
-            @(x,y) normal1(1)*2*(x-centroid(1))/diameter^2;
-            @(x,y) 1/diameter^2*(normal1(1)*(y-centroid(2))...
-            + normal1(2)*(x-centroid(1)));
-            @(x,y) normal1(2)*2*(y-centroid(2))/diameter^2};
-        dmdn2 = {@(x,y) 0;
-            @(x,y) normal2(1)*1/diameter;
-            @(x,y) normal2(2)*1/diameter;
-            @(x,y) normal2(1)*2*(x-centroid(1))/diameter^2;
-            @(x,y) 1/diameter^2*(normal2(1)*(y-centroid(2))...
-            + normal2(2)*(x-centroid(1)));
-            @(x,y) normal2(2)*2*(y-centroid(2))/diameter^2};
-        
-        for alpha = 1:npolys
-            if(i <= nsides)
-                B(alpha,i) = integrate1dline(vert, next, dmdn1{alpha}, 1) + ...
-                    integrate1dline(prev, vert, dmdn2{alpha}, 3);
-            elseif(i > nsides && i <= 2*nsides)
-                B(alpha,i) = integrate1dline(vert, next, dmdn1{alpha}, 2);
+            next = verts(modwrap(i+1, nsides), :);
+            prev = verts(modwrap(i-1, nsides), :);             
+            normal1 = [next(2) - vert(2), vert(1) - next(1)];
+            normal2 = [vert(2) - prev(2), prev(1) - vert(1)];
+            normal1 = normal1/norm(normal1);
+            normal2 = normal2/norm(normal2);
+            for alpha = 1:npolys
+                B(alpha,i) = ...
+                    integrate1dline(prev, vert, alpha, 3, {centroid, diameter, normal2}) + ...
+                    integrate1dline(vert, next, alpha, 1, {centroid, diameter, normal1});
             end
-        end
+        elseif(i > nsides)     
+            vert = verts(i-nsides,:);
+            next = verts(modwrap(i-nsides+1, nsides), :);            
+            normal = [next(2) - vert(2), vert(1) - next(1)];            
+            normal = normal/norm(normal);
+            for alpha = 1:npolys
+                B(alpha,i) = integrate1dline(vert, next, alpha, 2, {centroid, diameter, normal});
+            end
+        end        
     end
     lapm = [0;0;0;2/diameter^2;0;2/diameter^2];
     B(:,eldofs) = -area*lapm;
-    B(1,eldofs) = 1;
-    
+    B(1,eldofs) = 1;    
     G = B*D;
     projector = G\B;
     stabilising_term = (eye(eldofs) - D * projector)' * (eye(eldofs) - D * projector);
@@ -156,20 +134,16 @@ if(poly_deg == 2)
         vert = v(i,:);
         next = v(modwrap(i-1, nsides), :);
         Fe = Fe + loadvec(projector, centroid, vert, next, diameter, f);
-    end
-    
+    end    
     %%%%% Temporary variables - not assigned yet
     Me = Ke;
     H = G;
 end
-
 end
 
 function V = integrate2dtri(C,alpha,beta,diameter,qrule)
 if(qrule==1)
-    P1 = C{1};
-    P2 = C{2};
-    P3 = C{3};
+    P1 = C{1};  P2 = C{2};  P3 = C{3};
     centroid = P1;
     tricentroid = 1/3*(P1+P2+P3);
     A = [1, P1; 1, P2; 1, P3];
@@ -178,89 +152,58 @@ if(qrule==1)
     mb = @(x,y)((x-centroid(1))/diameter)^(beta(1))*((y-centroid(2))/diameter)^(beta(2));
     V = area*ma(tricentroid(1),tricentroid(2))*mb(tricentroid(1),tricentroid(2));
 elseif(qrule==6)
-    P1 = C{1};
-    P2 = C{2};
-    P3 = C{3};
-    centroid = P1;    
-    area = 0.5*abs(det([1, P1; 1, P2; 1, P3]));
-    
+    P1 = C{1};   P2 = C{2};   P3 = C{3};
+    centroid = P1;
+    area = 0.5*abs(det([1, P1; 1, P2; 1, P3]));    
     ma = @(x,y)((x-centroid(1))/diameter)^(alpha(1))*((y-centroid(2))/diameter)^(alpha(2));
-    mb = @(x,y)((x-centroid(1))/diameter)^(beta(1))*((y-centroid(2))/diameter)^(beta(2));
-    
-    qw = [0.1116907948390, 0.1116907948390, 0.1116907948390, 0.0549758718276, ...
-        0.0549758718276, 0.0549758718276];
-    qx = [0.108103018168, 0.445948490915, 0.445948490915, 0.816847572980,...
-        0.091576213509, 0.091576213509];
-    qy = [0.445948490915, 0.445948490915, 0.108103018168, 0.091576213509,...
-        0.091576213509, 0.816847572980,];
-    
+    mb = @(x,y)((x-centroid(1))/diameter)^(beta(1))*((y-centroid(2))/diameter)^(beta(2));    
+    Q = quadrature_rule(6,2); % 6th order triangular quadrature;
+    qw = Q(:,1);  qx = Q(:,2); qy = Q(:,3); % Obtain Quadrature points and weights    
     V = 0;
     for q = 1:qrule
         xhat = (P2(1)-P1(1))*qx(q) + (P3(1)-P1(1))*qy(q) + P1(1);
-        yhat = (P2(2)-P1(2))*qx(q) + (P3(2)-P1(2))*qy(q) + P1(2);
-        
+        yhat = (P2(2)-P1(2))*qx(q) + (P3(2)-P1(2))*qy(q) + P1(2);        
         V = V + qw(q)*2*area*ma(xhat,yhat)*mb(xhat,yhat);
     end
 end
 end
 
-function V = integrate1dline(p1, p2, func, basis)
-Q = [0.6521451548625461,-0.3399810435848563;
-     0.6521451548625461, 0.3399810435848563;
-     0.3478548451374538,-0.8611363115940526;
-     0.3478548451374538, 0.8611363115940526];
-qx = Q(:,2);
-qw = Q(:,1);
-qG = length(qx);
-x1 = p1(1); x2 = p2(1);
-y1 = p1(2); y2 = p2(2);
+function V = integrate1dline(p1, p2, alpha, basis, linegeo)
+x1 = p1(1); x2 = p2(1); y1 = p1(2); y2 = p2(2);
 dx = norm(p2-p1);
-
-if(x2 - x1 ~= 0)
-    V = 0;
-    for q=1:qG
-        xhat = (x2-x1)/2*qx(q) + (x2+x1)/2;
-        yhat = (xhat-x1)/(x2-x1)*(y2-y1) + y1;
-        phi = [-0.5*qx(q) + 0.5*qx(q)^2; 1-qx(q)^2; 0.5*qx(q) + 0.5*qx(q)^2];
-        V = V + 0.5*dx*qw(q)*func(xhat,yhat)*phi(basis);
-    end
-else
-    V = 0;
-    for q=1:qG
-        yhat = (y2-y1)/2*qx(q) + (y2+y1)/2;
-        xhat = (yhat-y1)/(y2-y1)*(x2-x1) + x1;
-        phi = [-0.5*qx(q) + 0.5*qx(q)^2; 1-qx(q)^2; 0.5*qx(q) + 0.5*qx(q)^2];
-        V = V + 0.5*dx*qw(q)*func(xhat,yhat)*phi(basis);
-    end
+Q = quadrature_rule(2,1); % 2 Point Quadrature rule on a line  
+qx = Q(:,2); qw = Q(:,1); % Get points and weights
+qG = length(qx);
+centroid = linegeo{1}; diameter = linegeo{2}; normal = linegeo{3};
+V = 0;
+for q = 1:qG
+    xhat = (x2-x1)/2*qx(q) + (x2+x1)/2;
+    yhat = (1+qx(q))/2*(y2-y1) + y1;
+    Mx = [0; 1/diameter; 0; (2/diameter^2)*(xhat-centroid(1)); ...
+        (1/diameter^2)*(yhat-centroid(2)); 0];
+    My = [0; 0; 1/diameter; 0; (1/diameter^2)*(xhat-centroid(1)); ...
+        (2/diameter^2)*(yhat-centroid(2))];
+    dmdn = Mx(alpha)*normal(1) + My(alpha)*normal(2);    
+    phi = [-0.5*qx(q)+0.5*qx(q)^2, 1-qx(q)^2, 0.5*qx(q)+0.5*qx(q)^2];
+    V = V + qw(q)*(dmdn*phi(basis))*0.5*dx;
 end
+
 end
 
 function V = loadvec(projector, centroid, vert, next, diameter, f)
-P1 = centroid;
-P2 = vert;
-P3 = next;
+P1 = centroid; P2 = vert; P3 = next;
 A = [1, P1; 1, P2; 1, P3];
 area = 0.5*abs(det(A));
-
-qw = [0.1116907948390, 0.1116907948390, 0.1116907948390, 0.0549758718276, ...
-    0.0549758718276, 0.0549758718276];
-qx = [0.108103018168, 0.445948490915, 0.445948490915, 0.816847572980,...
-    0.091576213509, 0.091576213509];
-qy = [0.445948490915, 0.445948490915, 0.108103018168, 0.091576213509,...
-    0.091576213509, 0.816847572980,];
+Q = quadrature_rule(6,2); % 6th order triangular quadrature;
+qw = Q(:,1);  qx = Q(:,2); qy = Q(:,3); % Obtain weights and quadrature points
 qG = length(qw);
-
 ndofs = size(projector,2);
 V = zeros(ndofs,1);
-
 for i=1:ndofs
     for q = 1:qG
         xhat = (P2(1)-P1(1))*qx(q) + (P3(1)-P1(1))*qy(q) + P1(1);
-        yhat = (P2(2)-P1(2))*qx(q) + (P3(2)-P1(2))*qy(q) + P1(2);
-        
-        m = [1;
-            (xhat-centroid(1))/diameter;
-            (yhat-centroid(2))/diameter;
+        yhat = (P2(2)-P1(2))*qx(q) + (P3(2)-P1(2))*qy(q) + P1(2);        
+        m = [1; (xhat-centroid(1))/diameter; (yhat-centroid(2))/diameter;
             ((xhat-centroid(1))/diameter)^2;
             ((xhat-centroid(1))/diameter)*((yhat-centroid(2))/diameter);
             ((yhat-centroid(2))/diameter)^2];

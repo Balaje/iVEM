@@ -57,8 +57,8 @@ elseif(k == 2)
     newnodes = newnumbering(1:length(mesh.elements{1}));
     newelements{1} = [newelements{1}; newnodes; elementdofids(1)];
     for i=2:nel
-        newnodes = newnumbering(length(mesh.elements{i-1})+1 ...
-        :length(mesh.elements{i-1})+length(mesh.elements{i}));
+        newnodes = newnumbering(length(vertcat(mesh.elements{1:i-1}))+1 ...
+        :length(vertcat(mesh.elements{1:i-1}))+length(mesh.elements{i}));
     
        newelements{i} = [newelements{i}; newnodes; elementdofids(i)]; 
     end
@@ -85,7 +85,7 @@ elseif(k == 2)
     end
     
    V = struct('boundary',{newboundary},...
-       'elements',{newelements},'vertices',{newvertices});
+       'elements',{newelements},'vertices',{newvertices});   
 end
 
 end
