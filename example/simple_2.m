@@ -1,5 +1,4 @@
 function simple_2
-clc
 clear
 close all
 format long

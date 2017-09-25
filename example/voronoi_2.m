@@ -1,7 +1,7 @@
 function voronoi_2
 clear
-clc
-close all
+%clc
+%close all
 format short
 
 mesh1 = load('voronoi_quadratic100.mat');
@@ -35,7 +35,7 @@ for it = 1:nref
     noofvertices = length(plotmesh{it}.vertices);
     u_verts = usol(1:noofvertices);
     
-    figure(1)
+    figure(2)
     subplot(1,2,1)
     cla
     plot_solution(plotmesh{it},u_verts);
@@ -45,13 +45,18 @@ for it = 1:nref
     subplot(1,2,2)
     cla
     plot_solution(plotmesh{it},zeros(length(u_verts),1));
-    title('Virtual Element Mesh','FontSize',14);
-    
+    hold on
+    scatter(mesh{it}.vertices(:,1),mesh{it}.vertices(:,2),5,'rs');
+    [~,centroid,~] = geo(mesh{it});
+    for i=1:length(centroid)
+        scatter(centroid{i}(1), centroid{i}(2),4,'b+')
+    end
+    title('Virtual Element Mesh','FontSize',12);
+    hold off    
     pause(0.01);
-    hold off
 end
 
-figure(2)
+figure(3)
 subplot(1,2,1)
 loglog(1./N.^(0.5), l2err, 'b*-', 1./N.^0.5, 1./N.^1.5, 'k-');
 grid on
@@ -66,7 +71,6 @@ title('H^1 order of convergence','FontSize',14);
 xlabel('Mesh size','FontSize',14);
 ylabel('Error','FontSize',14);
 legend('||e||_{H^1}','Line of slope = 2')
-
 
 for it = 1:nref-1
     l2order(it) = log(l2err(it)/l2err(it+1))/(0.5*log(N(it+1)/N(it)));
