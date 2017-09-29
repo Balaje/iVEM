@@ -1,7 +1,7 @@
 function voronoi_2
 clear
-%clc
-%close all
+clc
+close all
 format short
 
 mesh1 = load('voronoi_quadratic100.mat');
@@ -35,7 +35,7 @@ for it = 1:nref
     noofvertices = length(plotmesh{it}.vertices);
     u_verts = usol(1:noofvertices);
     
-    figure(2)
+    figure(1)
     subplot(1,2,1)
     cla
     plot_solution(plotmesh{it},u_verts);
@@ -56,7 +56,7 @@ for it = 1:nref
     pause(0.01);
 end
 
-figure(3)
+figure(2)
 subplot(1,2,1)
 loglog(1./N.^(0.5), l2err, 'b*-', 1./N.^0.5, 1./N.^1.5, 'k-');
 grid on

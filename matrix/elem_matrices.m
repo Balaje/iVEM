@@ -45,7 +45,7 @@ if(poly_deg==1)
                 vert = verts(v,:);
                 next = verts(modwrap(v-1, nsides), :);                
                 H(j,k) = H(j,k) + integrate2dtri({centroid,vert,next},...
-                    linear_polynomials{j},linear_polynomials{k},diameter,1);
+                    linear_polynomials{j},linear_polynomials{k},diameter,6);
             end
         end
     end    

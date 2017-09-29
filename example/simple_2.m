@@ -3,8 +3,8 @@ clear
 close all
 format long
 
-mesh = load('voronoi_quadratic');
-plotmesh = load('voronoi'); % Must input the corresponding mesh only.
+mesh = load('smoothed-voronoi_quadratic');
+plotmesh = load('smoothed-voronoi'); % Must input the corresponding mesh only.
 
 usol = poisson_2(mesh, @f, @g_D);
 
