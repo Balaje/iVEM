@@ -4,11 +4,11 @@ clear
 close all
 format long
 
-mesh = load('voronoi6400');
+mesh = load('squares_linear10');
 usol = poisson(mesh, @f, @g_D);
 
 exact = @(x,y)sin(pi*x)*sin(pi*y);
-[l2err,h1err] = l2error(mesh,exact,usol);
+[l2err,h1err] = l2error(mesh,exact,usol,1);
 
 figure(1)
 subplot(1,2,1);
@@ -31,8 +31,8 @@ D = diag(1./sum(M,1));
 uhx = D*Mx*usol;
 uhy = D*My*usol;
 
-[l2err_x, ~] = l2error(mesh, @(x,y) pi*cos(pi*x)*sin(pi*y), uhx);
-[l2err_y, ~] = l2error(mesh, @(x,y) pi*sin(pi*x)*cos(pi*y), uhy);
+[l2err_x, ~] = l2error(mesh, @(x,y) pi*cos(pi*x)*sin(pi*y), uhx, 1);
+[l2err_y, ~] = l2error(mesh, @(x,y) pi*sin(pi*x)*cos(pi*y), uhy, 1);
 
 figure(2)
 subplot(1,2,1);
