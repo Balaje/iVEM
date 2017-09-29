@@ -20,7 +20,7 @@ More features will be added soon.
 To solve the Poisson equation with a right hand side and a boundary condition:
 After setting up type the following in the MATLAB command prompt.
 ```Matlab
-f = @(x,y) 2*pi^2*sin(pi*x).*sin(pi*y) % Note: The .* is a must
+f = @(x,y) 2*pi^2*sin(pi*x).*sin(pi*y); % Note: The .* is a must
 g_D = @(x,y) 0*x.*y; % Must input in the same form.
 mesh = load('voronoi'); % Load the "Voronoi" mesh.
 u = poisson(mesh,f,g_D); % Solve the problem
