@@ -1,6 +1,13 @@
 function [l2,h1] = l2error(mesh,exactsol,uh,k)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Function to compute the L^2 error and the H^1 error  %
+% Function to compute the L^2 error and the H^1 error  
+%       [l2, h1] = l2error(mesh,exactsol,uh,k)
+%    Input :
+%           1. mesh structure: (see mesh/ folder).
+%           2. exactsol: function handle (Example: 
+%                       @(x,y)sin(pi*x)*sin(pi*y).
+%           3. uh: Approximate solution vector.
+%           4. k: Degree of the polynomial used.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 l2 = 0;
 h1 = 0;

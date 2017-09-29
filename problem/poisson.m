@@ -1,6 +1,13 @@
 function u = poisson(mesh,f,g_D)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Function to solve the Poisson problem using the Virtual Element Method
+%       u = poisson(mesh,f,g_D)
+% Input : 
+%           1. mesh structure (see mesh folder)
+%           2. Source function f(x,y) (Example: 
+%                                       @(x,y) 2*pi^2*sin(pi*x).*sin(pi*y) 
+%           3. Boundary Condition g_D(x,y) (Example: 
+%                                       @(x,y) 0*x.*y
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%% Get all the geometric data of the mesh
