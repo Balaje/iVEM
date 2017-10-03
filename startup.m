@@ -1,4 +1,4 @@
-function  startup
+function startup
 %%%%% To add the subfolders to the path, click on RUN |> in MATLAB
 addpath error
 addpath example
