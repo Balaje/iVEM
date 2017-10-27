@@ -1,14 +1,14 @@
-function solvebbm
+function solverosenau
 
 clc
 clear
 format short
 close all
 
-mesh = load('squares_linear15');
+mesh = load('voronoi400');
 t0 = 0;  tf = 0.1;  delt = 0.01;
 
-usol = bbm(mesh, @f, @g_D, @u0, tf, t0, delt);
+[usol,vsol] = rosenau(mesh, @f, @g_D, @u0, tf, t0, delt);
 exact = @(x,y) 10*tf*sin(pi*x)*sin(pi*y);
 
 [l2err,h1err] = l2error(mesh,exact,usol,1);
@@ -19,7 +19,7 @@ figure(1)
 subplot(1,2,1);
 plot_solution(mesh,usol);
 grid on
-str = 'Solution of the BBM equation';
+str = 'Solution of the ROSENAU equation';
 title(str,'FontSize',14,'interpreter','tex');
 view([-112,13])
 l2 = num2str(double(l2err));
@@ -41,7 +41,7 @@ function v = u0(x,y)
 end
 
 function v = f(x,y,t)
-    v = 10*sin(pi*x).*sin(pi*y).*(- 20*pi*sin(pi*(x + y))*t^2 + 2*pi^2 + 1);
+    v = 10.*sin(pi*x).*sin(pi*y).*(- 20*pi*sin(pi*(x + y))*t^2 + 4*pi^4 + 1);
 end
 
 function v = g_D(x,y,t)

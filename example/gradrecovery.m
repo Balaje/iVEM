@@ -4,7 +4,7 @@ clear
 close all
 format long
 
-mesh = load('squares_linear10');
+mesh = load('voronoi400');
 usol = poisson(mesh, @f, @g_D);
 
 exact = @(x,y)sin(pi*x)*sin(pi*y);
@@ -16,11 +16,11 @@ plot_solution(mesh,usol);
 grid on
 str = 'Solution of Poisson equation';
 title(str,'FontSize',14,'interpreter','tex');
-view([-55,14])
+view([-112,13])
 l2 = num2str(l2err);
 h1 = num2str(h1err);
-txt = ['||e||_{L^2} = ',l2(1:6); '  |e|_{H^1} = ',h1(1:6)];
-text(1,1,1,txt,'FontSize',11)
+txt = ['||e||_{L^2} = ',l2,'   |e|_{H^1} = ',h1];
+text(1,1,max(usol)+0.05,txt,'FontSize',11)
 subplot(1,2,2);
 plot_solution(mesh,zeros(length(usol),1));
 title('Virtual Element Mesh','FontSize',14);
@@ -40,7 +40,7 @@ plot_solution(mesh,uhx);
 grid on
 str = 'Recovered x-gradient';
 l2 = num2str(l2err_x);
-txt = ['||e||_{L^2} = ',l2(1:6)];
+txt = ['||e||_{L^2} = ',l2];
 text(1,1,3,txt,'FontSize',11)
 title(str,'FontSize',14,'interpreter','tex');
 view([-55,14])
@@ -49,7 +49,7 @@ plot_solution(mesh,uhy);
 grid on
 str = 'Recovered y-gradient';
 l2 = num2str(l2err_y);
-txt = ['||e||_{L^2} = ',l2(1:6)];
+txt = ['||e||_{L^2} = ',l2];
 text(1,1,3,txt,'FontSize',11)
 title(str,'FontSize',14,'interpreter','tex');
 view([-55,14])

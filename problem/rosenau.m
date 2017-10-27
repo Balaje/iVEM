@@ -1,4 +1,4 @@
-function u = bbm(mesh, f, g_D, u0, tf, t0, delt)
+function [u,v] = rosenau(mesh, f, g_D, u0, tf, t0, delt)
 
 ndof = length(mesh.vertices);
 nel = length(mesh.elements);
@@ -7,6 +7,8 @@ ntimes = fix((tf-t0)/delt);
 
 un = u0(mesh.vertices(:,1), mesh.vertices(:,2));
 uu = ones(length(un),1);
+vn = zeros(length(un),1);
+v = zeros(length(vn),1);
 
 t = 0;
 
@@ -46,34 +48,42 @@ for time = 1:ntimes
             C(mesh.elements{el},mesh.elements{el}) = ...
                 C(mesh.elements{el},mesh.elements{el}) + Ce;
         end
-                        
+        
         boundaryvals_p = g_D(mesh.vertices(mesh.boundary,1),...
-            mesh.vertices(mesh.boundary,2), t);  
-        
-        F = delt*F + (M + K)*un...
-            - (M(:,mesh.boundary) + K(:,mesh.boundary) - delt*C(:,mesh.boundary))*boundaryvals_p;
-        
+            mesh.vertices(mesh.boundary,2), t);
+                
         freenodes = mesh.boundary;
         solnodes = setdiff(1:ndof, freenodes);
         
+        vn(mesh.boundary) = boundaryvals_p;
+        vn(solnodes) = (M(solnodes,solnodes)\K(solnodes,solnodes))*un(solnodes);
+        
+        F = delt*F + (M*un + K*vn)...
+            - (M(:,mesh.boundary) + K(:,mesh.boundary)*(M(:,mesh.boundary)\K(:,mesh.boundary))...
+                - delt*C(:,mesh.boundary))*boundaryvals_p;               
+        
         u = zeros(ndof,1);
-        u(solnodes) = (M(solnodes,solnodes) + K(solnodes,solnodes)...
+        u(solnodes) = (M(solnodes,solnodes) + ...
+            K(solnodes,solnodes)*(M(solnodes,solnodes)\K(solnodes,solnodes))...
             - delt*C(solnodes,solnodes))\F(solnodes);
-        
-        u(freenodes) = g_D(mesh.vertices(mesh.boundary,1),...
-            mesh.vertices(mesh.boundary,2), t);
-        
-        u(freenodes) = g_D(mesh.vertices(mesh.boundary,1),...
-            mesh.vertices(mesh.boundary,2), t);                
-        
+                
        error = max(abs(uu - u));
        uu = u;                       
     end
            
     un = u;
+    boundaryvals_p = g_D(mesh.vertices(mesh.boundary,1),...
+            mesh.vertices(mesh.boundary,2), t);
+        
+    freenodes = mesh.boundary;
+    solnodes = setdiff(1:ndof, freenodes);
     
+    v(mesh.boundary) = boundaryvals_p;
+    v(solnodes) = (M(solnodes,solnodes)\K(solnodes,solnodes))*u(solnodes);
+    
+        
     cla
-    plot_solution(mesh,v)
+    plot_solution(mesh,u)
     grid on
     str = ['Solution at time t = ',num2str(t)];
     title(str);

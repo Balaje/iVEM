@@ -14,7 +14,7 @@ function plot_solution(mesh, solution)
 	elements = vertcat(elements{:});
 	data = [mesh.vertices, solution];
 	patch('Faces', elements, 'Vertices', data,...
-							'FaceColor', 'interp', 'CData', solution / max(abs(solution)));
+							'FaceColor', 'flat', 'CData', solution / max(abs(solution)));
 	%axis('square')
 	xlim([min(mesh.vertices(:, 1)) - 0.1, max(mesh.vertices(:, 1)) + 0.1])
 	ylim([min(mesh.vertices(:, 2)) - 0.1, max(mesh.vertices(:, 2)) + 0.1])
