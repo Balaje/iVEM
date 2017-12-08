@@ -13,8 +13,6 @@ exact = @(x,y) 10*tf*sin(pi*x)*sin(pi*y);
 
 [l2err,h1err] = l2error(mesh,exact,usol,1);
 
-length(usol)
-
 figure(1)
 subplot(1,2,1);
 plot_solution(mesh,usol);
@@ -41,7 +39,9 @@ function v = u0(x,y)
 end
 
 function v = f(x,y,t)
-    v = 10*sin(pi*x).*sin(pi*y).*(- 20*pi*sin(pi*(x + y))*t^2 + 2*pi^2 + 1);
+    %v = 10*sin(pi*x).*sin(pi*y).*(- 20*pi*sin(pi*(x + y))*t^2 + 2*pi^2 + 1);
+    v = 10*sin(pi*x)*sin(pi*y)*(2*pi^2 + 75*t^3*pi*sin(2*pi*x)...
+        + 75*t^3*pi*sin(2*pi*y) - 75*t^3*pi*sin(2*pi*(x + y)) + 1);
 end
 
 function v = g_D(x,y,t)

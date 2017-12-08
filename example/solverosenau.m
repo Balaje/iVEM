@@ -13,8 +13,6 @@ exact = @(x,y) 10*tf*sin(pi*x)*sin(pi*y);
 
 [l2err,h1err] = l2error(mesh,exact,usol,1);
 
-length(usol)
-
 figure(1)
 subplot(1,2,1);
 plot_solution(mesh,usol);

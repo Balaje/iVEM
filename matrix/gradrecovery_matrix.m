@@ -1,4 +1,4 @@
-function [Mx, My, Q] = gradrecovery_matrix(mesh)
+function [Mx, My, Q] = gradrecovery_matrix(mesh,k)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Function that returns the Gradient Recovery Matrices  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -15,11 +15,15 @@ for el = 1:nel
     nsides = length(mesh.elements{el});
     %usol = uh(mesh.elements{el});
        
-    [~,~,Me,G,~,B,~] = elem_matrices(mesh,el,1,@(x,y) 1);    
+    [~,~,Me,G,~,B,~] = elem_matrices(mesh,el,k,@(x,y) 1);    
     Qe = diag(sum(Me,1));
 
-    Dx = repmat([0, 1/diameter{el}, 0], nsides, 1);
-    Dy = repmat([0, 0, 1/diameter{el}], nsides, 1);
+    if(k==1)
+        Dx = repmat([0, 1/diameter{el}, 0], nsides, 1);
+        Dy = repmat([0, 0, 1/diameter{el}], nsides, 1);
+    elseif(k==2)
+        
+    end
     pi0uh = (G\B);
     
     Mxe = Qe*Dx*pi0uh;

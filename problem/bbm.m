@@ -61,10 +61,7 @@ for time = 1:ntimes
             - delt*C(solnodes,solnodes))\F(solnodes);
         
         u(freenodes) = g_D(mesh.vertices(mesh.boundary,1),...
-            mesh.vertices(mesh.boundary,2), t);
-        
-        u(freenodes) = g_D(mesh.vertices(mesh.boundary,1),...
-            mesh.vertices(mesh.boundary,2), t);                
+            mesh.vertices(mesh.boundary,2), t);         
         
        error = max(abs(uu - u));
        uu = u;                       
@@ -73,7 +70,7 @@ for time = 1:ntimes
     un = u;
     
     cla
-    plot_solution(mesh,v)
+    plot_solution(mesh,u)
     grid on
     str = ['Solution at time t = ',num2str(t)];
     title(str);
@@ -84,7 +81,8 @@ end
 
 %%% The nonlinearity
 function V = h(u)
-V = 2*u;
+%V = 2*u;
+V = -3*u^2;
 end
 
 function Ce = conv_matrix(centroid, diameter, projector, projection, nsides, verts)
