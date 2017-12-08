@@ -77,7 +77,7 @@ for time = 1:ntimes
     v(solnodes) = (M(solnodes,solnodes)\K(solnodes,solnodes))*u(solnodes);
     
     cla
-    plot_solution(mesh,v)
+    plot_solution(mesh,u)
     grid on
     str = ['Solution at time t = ',num2str(t)];
     title(str);
