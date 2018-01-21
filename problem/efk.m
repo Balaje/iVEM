@@ -1,4 +1,4 @@
-function [u,v] = efk(mesh, f, g_D, u0, tf, t0, delt)
+function [u,v] = efk(mesh, f, g_Du, g_Dv, u0, tf, t0, delt)
 
 ndof = length(mesh.vertices);
 nel = length(mesh.elements);
@@ -48,7 +48,7 @@ for time = 1:ntimes
                 C(mesh.elements{el},mesh.elements{el}) + Ce;
         end
                         
-        boundaryvals_p = g_D(mesh.vertices(mesh.boundary,1),...
+        boundaryvals_p = g_Du(mesh.vertices(mesh.boundary,1),...
             mesh.vertices(mesh.boundary,2), t);  
         
         F = delt*F + M*un...
@@ -63,7 +63,7 @@ for time = 1:ntimes
             (M(solnodes,solnodes)\K(solnodes,solnodes)) + delt*K(solnodes,solnodes)...
             + delt*C(solnodes,solnodes) - delt*M(solnodes,solnodes))\F(solnodes);
         
-        u(freenodes) = g_D(mesh.vertices(mesh.boundary,1),...
+        u(freenodes) = g_Du(mesh.vertices(mesh.boundary,1),...
             mesh.vertices(mesh.boundary,2), t);                          
         
        error = max(abs(uu - u));
@@ -72,7 +72,7 @@ for time = 1:ntimes
            
     un = u;
     
-    v(mesh.boundary) = g_D(mesh.vertices(mesh.boundary,1),...
+    v(mesh.boundary) = g_Dv(mesh.vertices(mesh.boundary,1),...
             mesh.vertices(mesh.boundary,2), t);
     v(solnodes) = (M(solnodes,solnodes)\K(solnodes,solnodes))*u(solnodes);
     

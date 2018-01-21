@@ -8,7 +8,7 @@ close all
 mesh = load('squares_linear10');
 t0 = 0;  tf = 0.1;  delt = 0.01;
 
-[usol,vsol] = efk(mesh, @f, @g_D, @u0, tf, t0, delt);
+[usol,vsol] = efk(mesh, @f, @g_Du, @g_Dv, @u0, tf, t0, delt);
 exact = @(x,y) 10*tf*sin(pi*x)*sin(pi*y);
 
 [l2err,h1err] = l2error(mesh,exact,usol,1);
@@ -42,6 +42,10 @@ function v = f(x,y,t)
     v = (2*sin(pi*x)*sin(pi*y)*(50*t*pi^2 - 25*t + t*pi^4 + 2500*t^3*sin(pi*x)^2*sin(pi*y)^2 + 25))/5;
 end
 
-function v = g_D(x,y,t)
+function v = g_Du(x,y,t)
+    v = 0.*x.*y*t;
+end
+
+function v = g_Dv(x,y,t)
     v = 0.*x.*y*t;
 end
