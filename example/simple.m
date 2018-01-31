@@ -4,7 +4,7 @@ clear
 close all
 format long
 
-mesh = load('voronoi400');
+mesh = load('squares_linear20');
 usol = poisson(mesh, @f, @g_D);
 
 exact = @(x,y)sin(pi*x)*sin(pi*y);

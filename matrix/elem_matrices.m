@@ -160,22 +160,32 @@ end
 function V = integrate1dline(p1, p2, alpha, basis, linegeo)
 x1 = p1(1); x2 = p2(1); y1 = p1(2); y2 = p2(2);
 dx = norm(p2-p1);
-Q = quadrature_rule(2,1); % 2 Point Quadrature rule on a line  
-qx = Q(:,2); qw = Q(:,1); % Get points and weights
-qG = length(qx);
+% qx = Q(:,2); qw = Q(:,1); % Get points and weights
+% qG = length(qx);
 centroid = linegeo{1}; diameter = linegeo{2}; normal = linegeo{3};
-V = 0;
-for q = 1:qG
-    xhat = (x2-x1)/2*qx(q) + (x2+x1)/2;
-    yhat = (1+qx(q))/2*(y2-y1) + y1;
-    Mx = [0; 1/diameter; 0; (2/diameter^2)*(xhat-centroid(1)); ...
-        (1/diameter^2)*(yhat-centroid(2)); 0];
-    My = [0; 0; 1/diameter; 0; (1/diameter^2)*(xhat-centroid(1)); ...
-        (2/diameter^2)*(yhat-centroid(2))];
-    dmdn = Mx(alpha)*normal(1) + My(alpha)*normal(2);    
-    phi = [-0.5*qx(q)+0.5*qx(q)^2, 1-qx(q)^2, 0.5*qx(q)+0.5*qx(q)^2];
-    V = V + qw(q)*(dmdn*phi(basis))*0.5*dx;
-end
+
+pt = (basis==3)*(1) + (basis==1)*(-1) + (basis==2)*0;
+wt = (basis==3)*(1/3) + (basis==1)*(1/3) + (basis==2)*(4/3);
+xhat = (x2-x1)/2*(pt) + (x2+x1)/2;
+yhat = (1+pt)/2*(y2-y1) + y1;
+Mx = [0; 1/diameter; 0; (2/diameter^2)*(xhat-centroid(1)); ...
+    (1/diameter^2)*(yhat-centroid(2)); 0];
+My = [0; 0; 1/diameter; 0; (1/diameter^2)*(xhat-centroid(1)); ...
+    (2/diameter^2)*(yhat-centroid(2))];
+dmdn = Mx(alpha)*normal(1) + My(alpha)*normal(2);
+phi = [-0.5*pt+0.5*pt^2, 1-pt^2, 0.5*pt+0.5*pt^2];
+V = wt*dmdn*phi(basis)*0.5*dx;
+% for q = 1:qG
+%     xhat = (x2-x1)/2*qx(q) + (x2+x1)/2;
+%     yhat = (1+qx(q))/2*(y2-y1) + y1;
+%     Mx = [0; 1/diameter; 0; (2/diameter^2)*(xhat-centroid(1)); ...
+%         (1/diameter^2)*(yhat-centroid(2)); 0];
+%     My = [0; 0; 1/diameter; 0; (1/diameter^2)*(xhat-centroid(1)); ...
+%         (2/diameter^2)*(yhat-centroid(2))];
+%     dmdn = Mx(alpha)*normal(1) + My(alpha)*normal(2);    
+%     phi = [-0.5*qx(q)+0.5*qx(q)^2, 1-qx(q)^2, 0.5*qx(q)+0.5*qx(q)^2];
+%     V = V + qw(q)*(dmdn*phi(basis))*0.5*dx;
+% end
 
 end
 

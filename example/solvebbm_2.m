@@ -5,8 +5,8 @@ clear
 format short
 close all
 
-mesh = load('voronoi_quadratic400');
-plotmesh = load('voronoi400');
+mesh = load('voronoi_quadratic100');
+plotmesh = load('voronoi100');
 t0 = 0;  tf = 0.1;  delt = 0.01;
 
 usol = bbm_2(mesh, @f, @g_D, @u0, tf, t0, delt, plotmesh);

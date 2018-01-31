@@ -5,7 +5,7 @@ clear
 format short
 close all
 
-mesh = load('squares_linear15');
+mesh = load('squares_linear20');
 t0 = 0;  tf = 0.1;  delt = 0.01;
 
 usol = bbm(mesh, @f, @g_D, @u0, tf, t0, delt);
