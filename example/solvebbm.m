@@ -5,7 +5,7 @@ clear
 format short
 close all
 
-mesh = load('squares_linear20');
+mesh = load('voronoi');
 t0 = 0;  tf = 0.1;  delt = 0.01;
 
 usol = bbm(mesh, @f, @g_D, @u0, tf, t0, delt);
@@ -39,9 +39,7 @@ function v = u0(x,y)
 end
 
 function v = f(x,y,t)
-    %v = 10*sin(pi*x).*sin(pi*y).*(- 20*pi*sin(pi*(x + y))*t^2 + 2*pi^2 + 1);
-    v = 10*sin(pi*x)*sin(pi*y)*(2*pi^2 + 75*t^3*pi*sin(2*pi*x)...
-        + 75*t^3*pi*sin(2*pi*y) - 75*t^3*pi*sin(2*pi*(x + y)) + 1);
+    v = 10*sin(pi*x).*sin(pi*y).*(- 20*pi*sin(pi*(x + y))*t^2 + 2*pi^2 + 1);    
 end
 
 function v = g_D(x,y,t)

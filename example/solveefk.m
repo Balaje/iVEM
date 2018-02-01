@@ -5,7 +5,7 @@ clear
 format short
 close all
 
-mesh = load('squares_linear10');
+mesh = load('non-convex');
 t0 = 0;  tf = 0.1;  delt = 0.01;
 
 [usol,vsol] = efk(mesh, @f, @g_Du, @g_Dv, @u0, tf, t0, delt);

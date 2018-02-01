@@ -81,8 +81,7 @@ end
 
 %%% The nonlinearity
 function V = h(u)
-%V = 2*u;
-V = -3*u^2;
+V = 2*u;
 end
 
 function Ce = conv_matrix(centroid, diameter, projector, projection, nsides, verts)
