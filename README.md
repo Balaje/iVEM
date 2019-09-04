@@ -1,7 +1,6 @@
-# README #
 iVEM (Inspired by AFEM@Matlab)
 
-These set of codes are the first few steps to implement the Virtual Element Method in the most easiest way possible. 
+These set of codes are the first few steps to implement the Virtual Element Method in the most easiest way possible.
 This piece of software can be used to solve new problems without worrying about a lot of background construction regarding
 mass matrix and error computation.
 
@@ -10,7 +9,7 @@ More features will be added soon.
 
 ### How do I get set up? ###
 
-* This code will only run on MATLAB. Before starting to use the software, add subfolders of iVEM to the default MATLAB path. To do this:  
+* This code will only run on MATLAB. Before starting to use the software, add subfolders of iVEM to the default MATLAB path. To do this:
 * Launch MATLAB.
 * cd into the directory of iVEM.
 * run startup.m
@@ -34,5 +33,5 @@ help l2error
 in the command prompt to know more.
 
 ### Who do I talk to? ###
-* Balaje K (https://bitbucket.org/balajek)
-* Email: balaje6@gmail.com
+* Balaje K [https://bitbucket.org/balajek](https://bitbucket.org/balajek)
+* Email: [balaje6@gmail.com](mailto:balaje6@gmail.com)
