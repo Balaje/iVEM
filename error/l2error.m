@@ -1,5 +1,5 @@
-function [l2,h1] = l2error(mesh,exactsol,uh,k)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [l2,h1] = l2error(mesh,exactsol,uh,k,isInt)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Function to compute the L^2 error and the H^1 error  
 %       [l2, h1] = l2error(mesh,exactsol,uh,k)
 %    Input :
@@ -8,7 +8,8 @@ function [l2,h1] = l2error(mesh,exactsol,uh,k)
 %                       @(x,y)sin(pi*x)*sin(pi*y).
 %           3. uh: Approximate solution vector.
 %           4. k: Degree of the polynomial used.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%           5. isInt: Boolean variable to denote interior variable or not.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 l2 = 0;
 h1 = 0;
 [area, centroid, diameter] = geo(mesh);
@@ -24,6 +25,11 @@ qw = Q(:,1); qx = Q(:,2); qy = Q(:,3);
 modwrap = @(x,a) mod(x-1,a) + 1;
 for i=1:nel
     usol = uh(mesh.elements{i});
+    if(isInt==true)
+        if(sum(ismember(mesh.boundary,mesh.elements{i})) > 0)
+           continue 
+        end
+    end
     
     [~,~,~,G,D,B,~] = elem_matrices(mesh,i,k,@(x,y) 1);
     

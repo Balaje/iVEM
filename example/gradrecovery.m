@@ -4,7 +4,7 @@ clear
 close all
 format long
 
-mesh = load('voronoi400');
+mesh = load('squares_linear10.mat');
 usol = poisson(mesh, @f, @g_D);
 
 exact = @(x,y)sin(pi*x)*sin(pi*y);
@@ -25,7 +25,7 @@ subplot(1,2,2);
 plot_solution(mesh,zeros(length(usol),1));
 title('Virtual Element Mesh','FontSize',14);
 
-[Mx, My, M] = gradrecovery_matrix(mesh);
+[Mx, My, M] = gradrecovery_matrix(mesh,1);
 
 D = diag(1./sum(M,1));
 uhx = D*Mx*usol;
@@ -50,7 +50,7 @@ grid on
 str = 'Recovered y-gradient';
 l2 = num2str(l2err_y);
 txt = ['||e||_{L^2} = ',l2];
-text(1,1,3,txt,'FontSize',11)
+text(1,1,3,txt,'FontSize',12)
 title(str,'FontSize',14,'interpreter','tex');
 view([-55,14])
 
