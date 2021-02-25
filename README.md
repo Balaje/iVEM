@@ -1,4 +1,4 @@
-iVEM (Inspired by AFEM@Matlab)
+iVEM (Inspired by AFEM@Matlab) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4561721.svg)](https://doi.org/10.5281/zenodo.4561721)
 
 These set of codes are the first few steps to implement the Virtual Element Method in the easiest way possible.
 This piece of software can be used to solve new problems without worrying about a lot of background construction regarding
