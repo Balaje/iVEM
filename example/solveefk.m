@@ -11,7 +11,7 @@ t0 = 0;  tf = 0.1;  delt = 0.01;
 [usol,vsol] = efk(mesh, @f, @g_Du, @g_Dv, @u0, tf, t0, delt);
 exact = @(x,y) 10*tf*sin(pi*x)*sin(pi*y);
 
-[l2err,h1err] = l2error(mesh,exact,usol,1);
+[l2err,h1err] = l2error(mesh,exact,usol,1,false);
 
 figure(1)
 subplot(1,2,1);

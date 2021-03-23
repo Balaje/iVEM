@@ -9,7 +9,7 @@ plotmesh = load('smoothed-voronoi'); % Must input the corresponding mesh only.
 usol = poisson_2(mesh, @f, @g_D);
 
 exact = @(x,y)sin(pi*x)*sin(pi*y);
-[l2err,h1err] = l2error(mesh,exact,usol,2);
+[l2err,h1err] = l2error(mesh,exact,usol,2,false);
 
 %%% To plot, we select the solution points on the vertices only
 noofvertices = length(plotmesh.vertices);

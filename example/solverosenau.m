@@ -16,7 +16,7 @@ for i=1:length(meshes)
     [usol,vsol] = rosenau(mesh, @f, @g_D, @u0, tf, t0, delt);
     exact = @(x,y) 2*pi^2*10*tf*sin(pi*x)*sin(pi*y);
     
-    [l2err,h1err] = l2error(mesh,exact,vsol,1);
+    [l2err,h1err] = l2error(mesh,exact,vsol,1,false);
     
     figure(i)
     subplot(1,2,1);

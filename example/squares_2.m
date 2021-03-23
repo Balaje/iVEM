@@ -29,7 +29,7 @@ h1order = zeros(nref-1,1);
 for it = 1:nref
     usol = poisson_2(mesh{it}, @f, @g_D);
     
-    [l2err(it),h1err(it)] = l2error(mesh{it},@exact,usol,2);
+    [l2err(it),h1err(it)] = l2error(mesh{it},@exact,usol,2,false);
     N(it) = size(mesh{it}.elements,1);
     
     noofvertices = length(plotmesh{it}.vertices);

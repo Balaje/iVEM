@@ -12,7 +12,7 @@ t0 = 0;  tf = 0.1;  delt = 0.01;
 usol = bbm_2(mesh, @f, @g_D, @u0, tf, t0, delt, plotmesh);
 exact = @(x,y) 10*tf*sin(pi*x)*sin(pi*y);
 
-[l2err,h1err] = l2error(mesh,exact,usol,2);
+[l2err,h1err] = l2error(mesh,exact,usol,2,false);
 
 noofvertices = length(plotmesh.vertices);
 u_verts = usol(1:noofvertices);

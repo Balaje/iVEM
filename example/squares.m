@@ -25,7 +25,7 @@ h1order = zeros(nref-1,1);
 for it = 1:nref
     usol = poisson(mesh{it}, @f, @g_D);
     
-    [l2err(it),h1err(it)] = l2error(mesh{it},@exact,usol,1);
+    [l2err(it),h1err(it)] = l2error(mesh{it},@exact,usol,1,false);
     N(it) = size(mesh{it}.elements,1);
     
     figure(1)

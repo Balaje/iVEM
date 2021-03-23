@@ -19,14 +19,54 @@ More features will be added soon.
 To solve the Poisson equation with a right hand side and a boundary condition:
 After setting up type the following in the MATLAB command prompt.
 
+#### For k=1
+Run:
 ``` matlab
 f = @(x,y) 2*pi^2*sin(pi*x).*sin(pi*y); % Note: The .* is a must
 g_D = @(x,y) 0*x.*y; % Must input in the same form.
 mesh = load('voronoi'); % Load the "Voronoi" mesh.
 u = poisson(mesh,f,g_D); % Solve the problem
 plot_solution(mesh,u);
-[l2err, h1err] = l2error(mesh,@(x,y)sin(pi*x)*sin(pi*y),u,1);
+[l2err, h1err] = l2error(mesh,@(x,y)sin(pi*x)*sin(pi*y),u,1,false);
 ```
+
+For a prettier picture try running the example `examples/simple.m`:
+
+|![Squares](Images/squares.png)|
+| -- |
+
+#### For k=2
+Run:
+``` matlab
+f = @(x,y) 2*pi^2*sin(pi*x).*sin(pi*y); % Note: The .* is a must
+g_D = @(x,y) 0*x.*y; % Must input in the same form.
+mesh = load('smoothed-voronoi_quadratic');
+plotmesh = load('smoothed-voronoi'); % Must input the corresponding linear mesh only.
+usol = poisson_2(mesh, f, g_D);
+exact = @(x,y)sin(pi*x)*sin(pi*y);
+[l2err,h1err] = l2error(mesh,exact,usol,2,false);
+%%% To plot, we select the solution points on the vertices only
+noofvertices = length(plotmesh.vertices);
+u_verts = usol(1:noofvertices);
+plot_solution(plotmesh,u_verts);
+```
+
+Again, for a prettier picture try running the example `examples/simple_2.m`:
+
+|![Voronoi](Images/voronoi_2.png)|
+| -- |
+
+#### More Examples:
+
+More examples are provided in the `examples/` folder. For example, try running `examples/voronoi_2.m` to study the rate of convergence.
+
+| ![Voronoi solution](Images/solution_voronoi.png) | ![Voronoi Rate](Images/order_voronoi.png) |  
+-- | --
+
+Running `examples/squares_2.m` gives the rate of convergence for squares.
+
+| ![Squares solution](Images/solution_square.png) | ![Squares Rate](Images/order_square.png) |  
+-- | --
 
 To get help, simply type
 
